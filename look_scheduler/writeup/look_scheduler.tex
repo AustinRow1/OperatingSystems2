@@ -112,7 +112,7 @@
 		\item
 			Clone the yocto repo: \textit{git clone git://git.yoctoproject.org/linux-yocto}
 		\item 
-			Change to the correct yocto version with \textit{cd linux-yocto} followed by \textit{checkout v3.19.2}
+			Change to the correct yocto version with \textit{cd linux-yocto} followed by \textit{git checkout v3.19.2}
 		\item 
 			\textit{cp \texttildelow/yocto\_config ./.config}
 		\item 
@@ -135,7 +135,8 @@
 		\item
 			T1: \textit{make -j4 all} \\
 			This is the command that actually builds the kernel and generates the kernel image that will used to boot the operating system within the VM. 
-			This command will take several minutes. 
+			When it asks you if you want to enable the Look schedule enter "Y". And when it asks you what scheduler to use, press "4" (Which is the LOOK scheduler)
+			After doing this, this command may take several minutes. 
 			Wait until it is done before going on to the next step.
 		\item
 			T1: 
