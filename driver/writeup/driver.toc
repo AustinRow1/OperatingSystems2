@@ -3,5 +3,5 @@
 \contentsline {section}{\numberline {3}Block driver Design}{4}{section.3}
 \contentsline {section}{\numberline {4}Questions About Assignment}{10}{section.4}
 \contentsline {section}{\numberline {5}Version Control Log}{11}{section.5}
-\contentsline {section}{\numberline {6}Work Log}{12}{section.6}
-\contentsline {section}{References}{12}{section*.2}
+\contentsline {section}{\numberline {6}Work Log}{11}{section.6}
+\contentsline {section}{References}{11}{section*.2}
