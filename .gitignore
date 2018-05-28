@@ -34,7 +34,6 @@ core-image-lsb-sdk-qemux86.ext4
 *.o
 *.o.*
 *.order
-*.patch
 *.s
 *.so
 *.so.dbg
