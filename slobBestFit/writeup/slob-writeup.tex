@@ -1,0 +1,226 @@
+\documentclass[onecolumn,draftclsnofoot, 10pt, compsoc]{IEEEtran}
+
+\usepackage{graphicx}
+\usepackage[section]{placeins}
+\usepackage{caption}
+
+\usepackage{amssymb}                                         
+\usepackage{amsmath}                                         
+\usepackage{amsthm}                                
+
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+\usepackage{url}
+\usepackage{setspace}
+\usepackage{xspace}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{etoolbox}
+\AtBeginEnvironment{quote}{\singlespacing\vspace{-\topsep}\small}
+
+%input{pygments.tex}
+
+\usepackage{geometry}
+\geometry{left=0.75in,right=0.75in,top=0.75in,bottom=0.75in}
+\parindent = 0.0 in
+\parskip = 0.1 in
+
+\usepackage{fancyvrb}
+\usepackage{textcomp}
+\def \ParSpace{\vspace{.75em}}
+\def \GroupNumber{17\xspace}
+\def \Class{Operating Systems II\xspace}
+\def \School{Oregon State University\xspace}
+\def \Professor{Kevin McGrath\xspace}
+
+%TODO: Rename to correct patch file name.
+\def \patchfile{slob\_mm.patch\xspace}
+
+\newcommand{\cred}[1]{{\color{red}#1}}
+\newcommand{\cblue}[1]{{\color{blue}#1}}
+
+\newcommand{\NameSigPair}[1]{
+		\par
+		\makebox[2.75in][r]{#1} \hfil 	\makebox[3.25in]{\makebox[2.25in]{\hrulefill} \hfill			
+		\makebox[.75in]{\hrulefill}}
+		\par\vspace{-12pt} \textit{
+			\tiny\noindent
+			\makebox[2.75in]{} \hfil		
+			\makebox[3.25in]{
+				\makebox[2.25in][r]{Signature} \hfill	\makebox[.75in][r]{Date}
+			}
+		}
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\begin{titlepage}
+    \pagenumbering{gobble}
+    \begin{singlespace}
+    	\includegraphics[height=4cm]{coe.eps}
+        \hfill  
+        \par\vspace{.2in}
+        \centering
+        \scshape{
+            \vspace{.5in}
+            \textbf{\Huge\Class}\par
+            \large{
+            	\today \\Spring Term
+        	}
+            \vfill
+            {\large Prepared for}\par
+            \huge \School\par
+            \vspace{5pt}
+            {\Large{\Professor}\par}
+            {\large Prepared by }\par
+           % Group\GroupNumber\par
+            \vspace{5pt}
+            {\Large
+                {Austin Row}\par
+                {Lazar Sharipoff}\par
+                {Benjamin Richards}\par
+            }
+            \vspace{20pt}
+        }
+        \begin{abstract}
+			This document describes the steps used by group \GroupNumber to complete Project 4, the SLOB Best Fit Memory Allocator, for \Class. 
+			It also answers the questions given in the assignment description regarding the assignment itself.
+        \end{abstract}     
+    \end{singlespace}
+\end{titlepage}
+\newpage
+\pagenumbering{arabic}
+\tableofcontents
+% 7. uncomment this (if applicable). Consider adding a page break.
+%\listoffigures
+%\listoftables
+\clearpage
+
+
+\section{Steps To Setup Environment}
+	%TODO: These steps may need to be tweaked, especially if any file names change. This is just a best-effort approximation.
+	Note: This assumes that the files \textbf{yocto\_config}, \textbf{\patchfile}, and \textbf{slob.c} which were included in this submission have been copied to your home directory on os2.engr.oregonstate.edu.
+	\begin{enumerate}
+		\item
+			SSH on to the OS2 server: \textit{ ssh os2.engr.oregonstate.edu. }
+		\item
+			Clone the yocto repo: \textit{git clone git://git.yoctoproject.org/linux-yocto}
+		\item 
+			Change to the correct yocto version with \textit{cd linux-yocto} followed by \textit{git checkout v3.19.2}
+		\item 
+			\textit{cp \texttildelow/yocto\_config ./.config}
+		\item 
+			\textit{cp \texttildelow/\patchfile}
+		\item 
+			\textit{cp \texttildelow/slob.c ./mm/} (overwrite existing slob.c if necessary)
+		\item 
+			\textit{git apply \patchfile}
+	\end{enumerate}
+
+
+\section{Steps To Build and Run Kernel}
+	Continuing from \textbf{Steps to Setup Environment}.
+	\begin{enumerate}
+		\item
+			Split the terminal into two windows using tmux.
+			We will refer to these windows as T1 and T2. 
+		\item
+			T1: \textit{source /scratch/files/environment-setup-i586-poky-linux} \\
+			It will appear that nothing happened, but it actually ran commands to configure the shell so that it’s ready to build the kernel. 
+		\item
+			T1: \textit{make -j4 all} \\
+			This is the command that actually builds the kernel and generates the kernel image that will used to boot the operating system within the VM. 
+			When it asks you if you want to enable the Look schedule enter "Y". And when it asks you what scheduler to use, press "4" (Which is the LOOK scheduler)
+			After doing this, this command may take several minutes. 
+			Wait until it is done before going on to the next step.
+		\item
+			T1: \textit{cp /scratch/spring2018/17/core-image-lsb-sdk-qemux86.ext4 .}
+		\item
+			T1: 
+			\textit{qemu-system-i386 -gdb tcp::5517 -S -nographic -kernel ./arch/x86/boot/bzImage -drive file=./core-image-lsb-sdk-qemux86.ext4,if=virtio -enable-kvm -net none -usb -localtime --no-reboot --append "root=/dev/vda rw console=ttyS0"} \\
+			The terminal should hang now and do nothing. 
+			You have booted the VM using the bzImage file that you generated in the previous step. 
+			The VM’s CPU is halted which is why nothing is happening. 
+			Proceed to the next step.	
+		\item
+			T2: \textit{gdb -tui}
+		\item
+			T2: \textit{target remote :5517} \\
+			This attaches the current GDB process to the process which is running on port 5517 which is the process running the halted VM.
+		\item
+			T2 : \textit{continue} \\
+			Now the VM in T1 will no longer be hanging. 
+			Switch back to T1 and wait for it to ask you to login.
+		\item
+			T1: \textit{root} \\
+			You are now within the VM logged in as the root user and using a kernel that utilizes a LOOK IO Scheduler. 
+	\end{enumerate}
+
+\clearpage
+\section{Best Fit Algorithm Design}
+	The default first-fit algorithm looks through each page in the set of pages that have the smallest block sizes that can still accomodate the needed amount of memory.
+	Each of the blocks are tested to see if they have enough available space to fit the specified needed size after taking into account offset for alignment purposes.
+	Upon finding the first block that satisfies these conditions, the block is allocated and returned. \\
+
+	The best-fit algorithm will be similar to the first-fit algorithm, except it will not immediately allocate to the first block it fines that have enough available memory.
+	Instead, the algorithm will look through every page and keep track of the smallest available block found that can still fit the size that is needed after accounting for offset from alignment.
+	After looking at every available block, it will allocate whichever has been saved as the best fit.
+	If a block is found that perfectly fits the needed size, the algorithm will stop searching and allocate to that block since there cannot be a better fit.
+
+\section{Questions About Assignment}
+	%TODO: This entire section
+	\begin{enumerate}
+		\item What do you think the main point of this assignment is? \\
+
+		\item How did you personally approach the problem? \\
+			%Learned difference between first-fit and best-fit. Figured out how the existing slob memory allocator worked and then made changes to the existing code to change the algorithm from best-fit to first-fit
+
+		\item How did you ensure your solution was correct? \\
+			%I don't techinically know that it's correct, I just know that you can run the kernel and everything works which I believe means that it works. 
+			%If the memory allocator was screwed up, then the entire kernel would be screwed up.
+			%Maybe write something a little more confident-sounding, though.
+
+		\item What did you learn? \\
+			\begin{itemize}
+				\item Placeholder
+			\end{itemize}
+
+		\item How should the TA evaluate your work? \\
+
+	\end{enumerate}
+
+
+\section{Version Control Log}
+	%TODO: fill this in
+
+\section{Work Log}
+	%TODO: Finish this with whatever other work has been done.
+	\begin{center}
+		\begin{tabular}{ |p{2cm}|p{12cm}| }
+			\hline
+			6/3/2018 & Learned the difference between first-fit and best-fit. Spent time figuring out how slob.c works. \\
+			\hline
+			6/4/2018 & Finished figuring out how slob.c works. First attempt at implementing the best-fit algorithm in slob.c. \\
+			\hline
+			6/5/2018 & Finished implementing best-fit algorithm. \\
+			\hline
+		\end{tabular}
+	\end{center}
+
+%TODO: Once at least one citation is added remove \nocite{*} and uncomment out \bibdata and \bibliographystyle
+\nocite{*}
+
+%\bibdata{}
+%\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
